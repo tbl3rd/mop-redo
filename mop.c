@@ -203,15 +203,15 @@ static Mop *mopAbsorb(Mop *m, Yarn *y)
    Delete mops[n] for all n so don't use them after calling this.
    Call mopDelete(m) eventually.
 */
-static Mop *mopReduce(Mop *mops[], long long count)
+static Mop *mopRedo(Mop *mops[], long long count)
 {
     if (count == 0) return mopNew();
     if (count == 1) return mops[0];
     if (count == 2) return mopWeave(mops[0], mops[1]);
-    if (count % 2) return mopWeave(mops[0], mopReduce(mops + 1, count - 1));
+    if (count % 2) return mopWeave(mops[0], mopRedo(mops + 1, count - 1));
     const long long half = count / 2;
-    Mop *const left = mopReduce(mops, half);
-    Mop *const right = mopReduce(mops + half, half);
+    Mop *const left = mopRedo(mops, half);
+    Mop *const right = mopRedo(mops + half, half);
     return mopWeave(left, right);
 }
 
@@ -261,11 +261,11 @@ static Mop *intMopNew(long long n)
 /* Return a new mop m containing all size integers in nv.
    Call mopDelete(m) eventually.
 */
-static Mop *intMopReduce(long long size, const long long nv[])
+static Mop *intMopRedo(long long size, const long long nv[])
 {
     Mop **pMop = calloc(size, sizeof *pMop);
     for (long long i = 0; i < size; ++i) pMop[i] = intMopNew(nv[i]);
-    Mop *result = mopReduce(pMop, size);
+    Mop *result = mopRedo(pMop, size);
     free(pMop);
     return result;
 }
@@ -291,7 +291,7 @@ int main(int ac, char *av[])
         if (*pEnd == *"") {
             const long long size = end - begin;
             long long *const in = range(begin, end);
-            Mop *const m = intMopReduce(size, in);
+            Mop *const m = intMopRedo(size, in);
             long long *const out = calloc(size, sizeof *out);
             IntBucket b = { nullBucket.mopF, &intYarnF, out };
             mopWring(m, (Bucket *)&b);
